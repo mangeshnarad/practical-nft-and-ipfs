@@ -1,0 +1,86 @@
+1) Write a Solidity Smart Contract for a Non-Fungible
+Token (NFT) called Virtual Land NFT which signifies a
+Virtual Land in Metaverse. 
+
+ans=
+
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
+
+contract VirtualLandNFT is ERC721, Ownable {
+    // Counter for generating unique token IDs
+    uint256 private _tokenIdCounter;
+
+    // Base URI for metadata
+    string private _baseTokenURI;
+
+    // Mapping from token ID to virtual land details
+    mapping(uint256 => string) private _virtualLandDetails;
+
+    // Event emitted when virtual land details are set
+    event VirtualLandDetailsSet(uint256 indexed tokenId, string details);
+
+    /**
+     * @dev Constructor to initialize the NFT contract.
+     * @param name The name of the NFT contract.
+     * @param symbol The symbol of the NFT contract.
+     * @param baseTokenURI The base URI for the metadata.
+     */
+    constructor(string memory name, string memory symbol, string memory baseTokenURI) ERC721(name, symbol) {
+        _baseTokenURI = baseTokenURI;
+    }
+
+    /**
+     * @dev Mint a new Virtual Land NFT.
+     * @param to The address to which the NFT will be minted.
+     * @param details Details of the virtual land.
+     * @return The token ID of the newly minted NFT.
+     */
+    function mint(address to, string memory details) external onlyOwner returns (uint256) {
+        uint256 tokenId = _tokenIdCounter;
+        _safeMint(to, tokenId);
+        _tokenIdCounter++;
+        _setVirtualLandDetails(tokenId, details);
+        return tokenId;
+    }
+
+    /**
+     * @dev Set details for a specific virtual land NFT.
+     * @param tokenId The token ID of the virtual land NFT.
+     * @param details Details of the virtual land.
+     */
+    function setVirtualLandDetails(uint256 tokenId, string memory details) external onlyOwner {
+        require(_exists(tokenId), "Token ID does not exist");
+        _setVirtualLandDetails(tokenId, details);
+    }
+
+    /**
+     * @dev Internal function to set virtual land details.
+     * @param tokenId The token ID of the virtual land NFT.
+     * @param details Details of the virtual land.
+     */
+    function _setVirtualLandDetails(uint256 tokenId, string memory details) internal {
+        _virtualLandDetails[tokenId] = details;
+        emit VirtualLandDetailsSet(tokenId, details);
+    }
+
+    /**
+     * @dev Get the details of a virtual land NFT.
+     * @param tokenId The token ID of the virtual land NFT.
+     * @return Details of the virtual land.
+     */
+    function getVirtualLandDetails(uint256 tokenId) external view returns (string memory) {
+        require(_exists(tokenId), "Token ID does not exist");
+        return _virtualLandDetails[tokenId];
+    }
+
+    /**
+     * @dev Override function to get the base token URI.
+     */
+    function _baseURI() internal view override returns (string memory) {
+        return _baseTokenURI;
+    }
+}
